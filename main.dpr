@@ -85,7 +85,7 @@ Begin
 End;
 
 
-Procedure ChoiceOfSecretWords(Words: TStrMatrix; WordDictonary: TStringList; Var Secret_Words_Amounts: Integer);
+Procedure ChoiceOfSecretWords(Words: TStrMatrix;Var WordDictonary: TStringList; Var Secret_Words_Amounts: Integer);
 Var
     I, PlayersAmount, RandomNum: Integer;
 
@@ -127,6 +127,7 @@ Begin
     Until IsCorrect;
     EnterNumberOfPlayers := NumberOfPlayers;
 End;
+
 
 
 Procedure InputWords(Words: TStrMatrix; I,J : Integer);
@@ -264,6 +265,7 @@ Begin
 End;
 
 
+
 Function CheckIsEnd(Const ArrPoints:TIntArr; Out ListWinner:TList<Integer>):Boolean;
 Var
     Index, MaxPoints:Integer;
@@ -284,7 +286,6 @@ Begin
             ListWinner.Add(I);
         End;
     End;
-
     CheckIsEnd := (MaxPoints >= WIN_POINTS_NUM);
 End;
 
@@ -337,7 +338,7 @@ Begin
       '     Если он ошибся, то на экране отображаются еще и 3 глагола, и у игрока снова появляется возможност угадать слово.', #10#13,
       '     Если слово не угадано, то на экран выводятся еще и существительные.',
       #10#13, 'Игра длится до тех пор, пока хотя бы один из игроков не наберет 15 очков, которые даются за правильно угаданное слово.', #10#13);
-    End
+    End;
 End;
 
 
@@ -378,7 +379,10 @@ Begin
         IsEnd := CheckIsEnd(Arrpoints, ListWinner);
         OutputResult(ArrPoints);
     Until (IsEnd);
+    OutputWinners(ListWinner);
 
     Readln;
 End.
+
+
 
