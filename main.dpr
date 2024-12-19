@@ -284,7 +284,7 @@ Begin
             ListWinner.Add(I);
         End;
     End;
-    ListWinner.Clear;
+
     CheckIsEnd := (MaxPoints >= WIN_POINTS_NUM);
 End;
 
@@ -323,8 +323,6 @@ End;
 
 Procedure PrintTask();
 Begin
-    While True Do
-    Begin
     Writeln('Введите ', CHOOSE_START_GAME,' если хотите начать игру, ', CHOOSE_PRINT_TASK, ' если хотите вывести правила.');
     If InputMethod() = CHOOSE_PRINT_TASK Then
     Begin
@@ -340,9 +338,6 @@ Begin
       '     Если слово не угадано, то на экран выводятся еще и существительные.',
       #10#13, 'Игра длится до тех пор, пока хотя бы один из игроков не наберет 15 очков, которые даются за правильно угаданное слово.', #10#13);
     End
-    Else
-        Break;
-    End;
 End;
 
 
@@ -354,7 +349,7 @@ Begin
     Try
     For I In ListWinner Do
     Begin
-        Writeln('Победил игрок №', I);
+        Writeln('Победил игрок №', I + 1);
     End;
     Finally
         ListWinner.Free;
@@ -376,6 +371,7 @@ Begin
     SetLength(ArrPoints, NumberOfPlayers);
     ListWinner := TList<Integer>.Create;
     Repeat
+        ListWinner.Clear;
         InputData(Words, NumberOfPLayers);
         Arr := CreatingOrderForGuesing(NumberOfPLayers);
         OutputAssociation(Words,Arr,ArrPoints);
