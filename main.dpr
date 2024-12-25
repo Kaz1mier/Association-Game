@@ -49,6 +49,7 @@ Type
     TPartOfSpeech = (TPS_NONE,TPS_ADJ,TPS_VERB,TPS_NOUN);
     TIntArr = Array Of Integer;
 
+    {$APPTYPE CONSOLE}
 procedure ClearConsole;
 var
     ConsoleHandle: THandle;
