@@ -1,14 +1,17 @@
-﻿Program main;
+Program main;
 
 {$APPTYPE CONSOLE}
 
 Uses
-    System.SysUtils,
-    Classes,
-    Windows,
-    System.Generics.Collections;
+    System.SysUtils, Classes, Windows, System.Generics.Collections;
 
 Const
+    NOUN_ENDIGNS: Set Of AnsiChar = ['а','я','о','е'];
+    CONSONANTS: Set of AnsiChar = ['б', 'в', 'г', 'д', 'ж', 'з', 'к', 'л', 'м', 'н',
+                               'п', 'р', 'с', 'т', 'ф', 'х', 'ц', 'ч', 'ш', 'щ'];
+    VOWELS: Set of AnsiChar = ['а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я'];
+    LETTERS : Set Of AnsiChar = ['а'..'я','ё'];
+    ADJECTIVE_ENDINGS: Array[0..2] of AnsiString = ('ый', 'ий', 'ой');
     CHOICE_START_GAME = 0;
     CHOICE_PRINT_TASK = 1;
     NUM_OF_SPEECH_PARTS = 3;
@@ -18,43 +21,62 @@ Const
     NUM_OF_MAX_WORDS_IN_ROW = 10;
     MIN_NUM_OF_PLAYERS = 2;
     MAX_NUM_OF_PLAYERS = 5;
-    SPEECH_PARTS_ARR: Array [1 .. NUM_OF_SPEECH_PARTS * 2] Of String = (' прилагательных:', ' глагола:', ' существительных:',
-        'Прилагательные:', 'Глаголы:', 'Существительные:');
+    SPEECH_PARTS_ARR:Array[1..NUM_OF_SPEECH_PARTS*2] Of String = (
+        ' прилагательных:',
+        ' глагола:',
+        ' существительных:',
+        'Прилагательные:',
+        'Глаголы:',
+        'Существительные:'
+    );
 
-    START_DICTIONARY_OF_WORDS: Array [0 .. 88] Of String = ('стол', 'стул', 'книга', 'ручка', 'компьютер', 'телефон', 'окно', 'мяч',
-        'машина', 'дом', 'сад', 'цветок', 'забор', 'печь', 'чашка', 'тарелка', 'ложка', 'вилка', 'нож', 'письмо', 'танк', 'город', 'парк',
-        'вода', 'море', 'река', 'океан', 'воздух', 'мост', 'остров', 'страна', 'горы', 'яблоко', 'банан', 'апельсин', 'груша', 'арбуз',
-        'пустыня', 'трава', 'мороженое', 'кровать', 'торт', 'суп', 'телефон', 'лестница', 'сок', 'яйцо', 'сыр', 'дверь', 'хлеб', 'ноутбук',
-        'мясо', 'рыба', 'овощи', 'фрукты', 'молоко', 'сахар', 'соль', 'перец', 'ананас', 'клубника', 'вертолёт', 'самолёт', 'футбол',
-        'баскетбол', 'зима', 'лето', 'осень', 'весна', 'теннис', 'забег', 'клад', 'велосипед', 'коньки', 'замок', 'пианино', 'корова',
-        'орк', 'дракон', 'музыка', 'бог', 'рыцарь', 'кино', 'магия', 'меч', 'сказка', 'королевство', 'корона', 'видеоигра');
+    START_DICTIONARY_OF_WORDS: Array[0..88] Of String = (
+    'стол', 'стул', 'книга', 'ручка', 'компьютер',
+    'телефон', 'окно', 'мяч', 'машина',
+    'дом', 'сад', 'цветок', 'забор', 'печь',
+    'чашка', 'тарелка', 'ложка', 'вилка', 'нож',
+    'письмо', 'танк', 'город', 'парк', 'вода',
+    'море', 'река', 'океан', 'воздух', 'мост',
+    'остров', 'страна', 'горы', 'яблоко', 'банан',
+    'апельсин', 'груша', 'арбуз', 'пустыня', 'трава',
+    'мороженое', 'кровать', 'торт', 'суп', 'телефон',
+    'лестница', 'сок', 'яйцо', 'сыр', 'дверь',
+    'хлеб', 'ноутбук', 'мясо', 'рыба', 'овощи',
+    'фрукты', 'молоко', 'сахар', 'соль', 'перец',
+    'ананас', 'клубника', 'вертолёт', 'самолёт',
+    'футбол', 'баскетбол', 'зима', 'лето', 'осень', 'весна',
+    'теннис', 'забег', 'клад', 'велосипед', 'коньки',
+    'замок', 'пианино', 'корова', 'орк', 'дракон',
+    'музыка', 'бог', 'рыцарь', 'кино', 'магия',
+    'меч', 'сказка', 'королевство', 'корона', 'видеоигра'
+  );
+
 
 Type
-    TStrMatrix = Array Of Array Of String;
-    TPartOfSpeech = (TPS_NONE, TPS_ADJ, TPS_VERB, TPS_NOUN);
+    TStrMatrix = Array  Of Array Of String;
+    TPartOfSpeech = (TPS_NONE,TPS_ADJ,TPS_VERB,TPS_NOUN);
     TIntArr = Array Of Integer;
 
-
-Procedure ClearConsole;
-Var
+procedure ClearConsole;
+var
     ConsoleHandle: THandle;
     ConsoleSize: DWORD;
     Written: DWORD;
     Coord: TCoord;
     ConsoleInfo: TConsoleScreenBufferInfo;
-Begin
+begin
     ConsoleHandle := GetStdHandle(STD_OUTPUT_HANDLE);
-    If ConsoleHandle = INVALID_HANDLE_VALUE Then
+    if ConsoleHandle = INVALID_HANDLE_VALUE then
         Exit;
-    If Not GetConsoleScreenBufferInfo(ConsoleHandle, ConsoleInfo) Then
+    if not GetConsoleScreenBufferInfo(ConsoleHandle, ConsoleInfo) then
         Exit;
-    ConsoleSize := ConsoleInfo.DwSize.X * ConsoleInfo.DwSize.Y;
+    ConsoleSize := ConsoleInfo.dwSize.X * ConsoleInfo.dwSize.Y;
     Coord.X := 0;
     Coord.Y := 0;
     FillConsoleOutputCharacter(ConsoleHandle, ' ', ConsoleSize, Coord, Written);
-    FillConsoleOutputAttribute(ConsoleHandle, ConsoleInfo.WAttributes, ConsoleSize, Coord, Written);
+    FillConsoleOutputAttribute(ConsoleHandle, ConsoleInfo.wAttributes, ConsoleSize, Coord, Written);
     SetConsoleCursorPosition(ConsoleHandle, Coord);
-End;
+end;
 
 
 Function CreatListOfWords(): TStringList;
@@ -71,7 +93,7 @@ Begin
 End;
 
 
-Procedure ChoiceOfSecretWords(Words: TStrMatrix; Var WordDictonary: TStringList; Var Secret_Words_Amounts: Integer);
+Procedure ChoiceOfSecretWords(Words: TStrMatrix;Var WordDictonary: TStringList; Var Secret_Words_Amounts: Integer);
 Var
     I, PlayersAmount, RandomNum: Integer;
 
@@ -104,42 +126,143 @@ Begin
             IsCorrect := False;
             Writeln('Неверный ввод! Введите еще раз!');
         End;
-        If IsCorrect And (NumberOfPlayers < MIN_NUM_OF_PLAYERS) Or (NumberOfPlayers > MAX_NUM_OF_PLAYERS) Then
+        If IsCorrect And (NumberOfPlayers < MIN_NUM_OF_PLAYERS) Or
+          (NumberOfPlayers > MAX_NUM_OF_PLAYERS) Then
         Begin
             IsCorrect := False;
-            Writeln('Неподходящее количество игроков! Количество игроков должно быть от ', MIN_NUM_OF_PLAYERS, ' до ',
-                MAX_NUM_OF_PLAYERS, '!');
+            Writeln('Неподходящее количество игроков! Количество игроков должно быть от ', MIN_NUM_OF_PLAYERS, ' до ', MAX_NUM_OF_PLAYERS,'!');
         End;
     Until IsCorrect;
     EnterNumberOfPlayers := NumberOfPlayers;
 End;
 
 
-Procedure InputWords(Words: TStrMatrix; I, J: Integer);
+Function CheckIsWord(Const Word: AnsiString): Boolean;
+var
+    I, HighIdx: Integer;
+    IsValid, HasVowel, HasConsonant: Boolean;
+begin
+    HasConsonant := False;
+    HasVowel := False;
+    IsValid := True;
+    I := 1;
+    HighIdx := High(Word);
+
+    If HighIdx > 1 Then
+    While (I <= HighIdx) And IsValid do
+    Begin
+        If Not (Word[I] In LETTERS) Then
+            IsValid := False
+        Else
+            if Not (I = HighIdx) And (Word[I] In VOWELS) then
+                HasVowel := True
+            Else
+                If (Word[I] In CONSONANTS) then
+                    HasConsonant := True;
+        Inc(I);
+    End
+    else
+        IsValid := False;
+    IsValid := IsValid And HasVowel And HasConsonant;
+
+    CheckIsWord := IsValid;
+end;
+
+Function CheckIsNoun(Const Word: AnsiString): Boolean;
+var
+    LastLet, PredLastLet: AnsiChar;
+    IsValid: Boolean;
+begin
+    IsValid := False;
+    LastLet := Word[High(Word)];
+    PredLastLet := Word[High(Word) - 1];
+    IsValid :=  (LastLet In CONSONANTS)
+                Or ((PredLastLet In CONSONANTS)
+                And ((LastLet = 'ь')
+                Or (LastLet In NOUN_ENDIGNS)));
+
+    CheckIsNoun := IsValid;
+end;
+
+Function CheckIsVerb(Const Word: AnsiString): Boolean;
+Var
+    IsValid: Boolean;
+    LastLet, PredLastLet: AnsiChar;
+begin
+    IsValid := False;
+    LastLet := Word[High(Word)];
+    PredLastLet := Word[High(Word) - 1];
+    IsValid := ((Word[High(Word)] = 'ь')
+                And (Word[High(Word) - 1] In CONSONANTS))
+                Or ((PredLastLet = 'с') And (LastLet = 'я'));
+
+    CheckIsVerb := IsValid;
+end;
+
+Function CheckIsAdjective(Const Word: AnsiString): Boolean;
+var
+    I: Integer;
+    WordEnding: AnsiString;
+    IsValid: Boolean;
+begin
+    IsValid := False;
+    WordEnding := Word[High(Word) - 1] + Word[High(Word)];
+    For I := 0 To High(ADJECTIVE_ENDINGS) Do
+    If WordEnding = ADJECTIVE_ENDINGS[I] Then
+        IsValid := True;
+
+
+    CheckIsAdjective := IsValid;
+end;
+
+Function CheckPartOfSpeech(Const Word: AnsiString; PartOfSpeech: TPartOfSpeech):Boolean;
+var
+    IsValid: Boolean;
+begin
+    Case PartOfSpeech Of
+        TPS_ADJ:
+            IsValid := CheckIsAdjective(Word);
+        TPS_VERB:
+            IsValid := CheckIsVerb(Word);
+        TPS_NOUN:
+            IsValid := CheckIsNoun(Word);
+    End;
+
+    CheckPartOfSpeech := IsValid;
+end;
+
+Procedure InputHintWords(PartOfSpeech:TPartOfSpeech; Words: TStrMatrix; I,J : Integer; SecreteWord: String);
 Var
     Word: String;
+    IsValid: Boolean;
 Begin
+    Writeln('Введите ', NUM_OF_HINT_WORDS, SPEECH_PARTS_ARR[Ord(PartOfSpeech)]);
     For Var K := 0 To NUM_OF_HINT_WORDS - 1 Do
     Begin
-        Readln(Word);
-        LowerCase(Word);
-        Words[I][K + J] := Word;
+        Repeat
+            Readln(Word);
+            LowerCase(Word);
+            IsValid := Not (SecreteWord = Word) And CheckIsWord(Word) And CheckPartOfSpeech(Word, PartOfSpeech);
+            If Not IsValid then
+                Writeln('Некорректное слово. Попробуйте сново.');
+        Until IsValid;
+        Words[I][K+J] := Word;
     End;
 End;
 
 
-Function GuessingSecreteWord(Const SecretWord: String): Boolean;
+Function GuessingSecreteWord(Const SecretWord:String):Boolean;
 Var
-    IsCorrect: Boolean;
-    PlayerWord: String;
+    IsCorrect : Boolean;
+    PlayerWord:String;
 Begin
     IsCorrect := False;
     Writeln('Введите слово');
     Readln(PlayerWord);
     LowerCase(PlayerWord);
-    If (PlayerWord = SecretWord) Then
+    If(PlayerWord = SecretWord) Then
     Begin
-        IsCorrect := True;
+        IsCorrect:=True;
         Writeln('Вы угадали слово.');
     End
     Else
@@ -147,36 +270,50 @@ Begin
     GuessingSecreteWord := IsCorrect;
 End;
 
+Procedure CountPoints(Var ArrPoints:TIntArr; Const Order:TIntArr; Const I,J: Integer; Const IsAnswerCorrect: Boolean);
+begin
+    If IsAnswerCorrect Then
+        Begin
+            ArrPoints[I] := ArrPoints[I] + NUM_OF_ATTEMPTS - J Div 3 + 1;
+            Inc(ArrPoints[Order[I]]);
+        End
+    Else
+        Dec(ArrPoints[Order[I]]);
+end;
 
-Procedure OutputAssociation(Const MatrixOfPlayersWords: TStrMatrix; Const ArrGue: TIntArr; Var ArrPoints: TIntArr);
-Var
-    J: Integer;
-    PartOfSpeech: TPartOfSpeech;
+Function RunPlayerTurn(Var I, J: Integer; Const MatrixOfPlayersWords:TStrMatrix; PartOfSpeech:TPartOfSpeech; Const Order:TIntArr):Boolean;
+var
     IsCorrect: Boolean;
-Begin
-    For Var I := 0 To High(ArrGue) Do
+begin
+    IsCorrect := False;
+    While (Not IsCorrect) And (J <= High(MatrixOfPlayersWords[I])) Do
     Begin
-        Writeln('Игрок ', I + 1);
+        PartOfSpeech := Succ(PartOfSpeech);
+        Writeln(SPEECH_PARTS_ARR[Ord(PartOfSpeech) + NUM_OF_SPEECH_PARTS]);
+        For Var K := 0 To NUM_OF_HINT_WORDS-1 Do
+            Writeln(MatrixOfPlayersWords[Order[I]][J+K]);
+        Inc(J,NUM_OF_HINT_WORDS);
+        IsCorrect := GuessingSecreteWord(MatrixOfPlayersWords[Order[I]][0]);
+    End;
+
+    RunPlayerTurn := IsCorrect;
+end;
+
+Procedure RunRound(Const MatrixOfPlayersWords:TStrMatrix; Const Order:TIntArr;Var ArrPoints:TIntArr);
+Var
+    J:Integer;
+    PartOfSpeech:TPartOfSpeech;
+    IsCorrect:Boolean;
+Begin
+    For Var I := 0 To High(Order) Do
+    Begin
+        Writeln('Игрок', I + 1);
         J := 1;
         IsCorrect := False;
         PartOfSpeech := Low(TPartOfSpeech);
-        While (Not IsCorrect) And (J <= High(MatrixOfPlayersWords[I])) Do
-        Begin
-            PartOfSpeech := Succ(PartOfSpeech);
-            Writeln(SPEECH_PARTS_ARR[Ord(PartOfSpeech) + NUM_OF_SPEECH_PARTS]);
-            For Var K := 0 To NUM_OF_HINT_WORDS - 1 Do
-                Writeln(MatrixOfPlayersWords[ArrGue[I]][J + K]);
-            Inc(J, NUM_OF_HINT_WORDS);
-            IsCorrect := GuessingSecreteWord(MatrixOfPlayersWords[ArrGue[I]][0]);
-        End;
-        If IsCorrect Then
-        Begin
-            ArrPoints[I] := ArrPoints[I] + NUM_OF_ATTEMPTS - J Div 3 + 1;
-            Inc(ArrPoints[ArrGue[I]]);
-        End
-        Else
-            Dec(ArrPoints[ArrGue[I]]);
-        If I = High(ArrGue) Then
+        IsCorrect := RunPlayerTurn(I, J, MatrixOfPlayersWords, PartOfSpeech, Order);
+        CountPoints(ArrPoints, Order, I, J, IsCorrect);
+        If I =  High(Order) Then
             Writeln('Переход к результатам')
         Else
             Writeln('Переход к игроку ', I + 2);
@@ -186,27 +323,7 @@ Begin
     End;
 End;
 
-
-Procedure InputAnything(PartOfSpeech: TPartOfSpeech; Words: TStrMatrix; I, J: Integer);
-Begin
-    Writeln('Введите ', NUM_OF_HINT_WORDS, SPEECH_PARTS_ARR[Ord(PartOfSpeech)]);
-    InputWords(Words, I, J);
-    { Case PartOfSpeech Of
-      TPS_ADJ:
-      Begin
-      End;
-      TPS_VERB:
-      Begin
-      End;
-      TPS_NOUN:
-      Begin
-      End;
-      End; }
-
-End;
-
-
-Procedure InputData(MatrixOfPlayersWords: TStrMatrix; NumberOfPLayers: Integer);
+Procedure InputDataForRound(MatrixOfPlayersWords: TStrMatrix; NumberOfPLayers: Integer);
 Var
     I, J, K: Integer;
     PartOfSpeech: TPartOfSpeech;
@@ -216,7 +333,7 @@ Begin
     NumOfSecretWords := Length(START_DICTIONARY_OF_WORDS);
     WordDictonary := CreatListOfWords();
     ChoiceOfSecretWords(MatrixOfPlayersWords, WordDictonary, NumOfSecretWords);
-    For I := 0 To High(MatrixOfPlayersWords) Do
+    For I:= 0 To High(MatrixOfPlayersWords) Do
     Begin
         Writeln('Готово. Нажмите Enter, чтоб игрок ', I + 1, ' получил своё слово.');
         Readln;
@@ -226,7 +343,7 @@ Begin
         PartOfSpeech := Low(TPartOfSpeech);
         Repeat
             PartOfSpeech := Succ(PartOfSpeech);
-            InputAnything(PartOfSpeech, MatrixOfPlayersWords, I, J);
+            InputHintWords(PartOfSpeech, MatrixOfPlayersWords, I, J, MatrixOfPlayersWords[I][0]);
             Inc(J, NUM_OF_HINT_WORDS);
         Until (J > HIgh(MatrixOfPlayersWords[I]));
         ClearConsole;
@@ -254,15 +371,16 @@ Begin
             Order[RandomIndex] := Temp;
         End;
         For I := 0 To High(Order) Do
-            IsValid := Not(I = Order[I]);
+            IsValid := Not (I = Order[I]);
     Until IsValid;
+
     CreatingOrderForGuesing := Order;
 End;
 
 
-Function CheckIsEnd(Const ArrPoints: TIntArr; Out ListWinner: TList<Integer>): Boolean;
+Function CheckIsEnd(Const ArrPoints:TIntArr; Out ListWinner:TList<Integer>):Boolean;
 Var
-    Index, MaxPoints: Integer;
+    Index, MaxPoints:Integer;
 Begin
     MaxPoints := ArrPoints[0];
     ListWinner.Add(0);
@@ -275,16 +393,15 @@ Begin
             ListWinner.Add(I);
         End
         Else
-            If (ArrPoints[I] = MaxPoints) Then
-            Begin
-                ListWinner.Add(I);
-            End;
+        If (ArrPoints[I] = MaxPoints) Then
+        Begin
+            ListWinner.Add(I);
+        End;
     End;
     CheckIsEnd := (MaxPoints >= NUM_OF_WIN_POINTS);
 End;
 
-
-Procedure OutputResult(Const ArrPoints: TIntArr);
+Procedure OutputResult(Const ArrPoints:TIntArr);
 Begin
     Writeln('Таблица баллов:');
     For Var I := 0 To High(ArrPOints) Do
@@ -319,61 +436,61 @@ End;
 
 Procedure PrintTask();
 Begin
-    Writeln('Введите ', CHOICE_START_GAME, ' если хотите начать игру, ', CHOICE_PRINT_TASK, ' если хотите вывести правила.');
+    Writeln('Введите ', CHOICE_START_GAME,' если хотите начать игру, ', CHOICE_PRINT_TASK, ' если хотите вывести правила.');
     If InputMethod() = CHOICE_PRINT_TASK Then
     Begin
         Writeln(#10#13, 'Правила: ');
-        Writeln('В игре участвуют от ', MIN_NUM_OF_PLAYERS, ' до ', MAX_NUM_OF_PLAYERS, ' игроков.', #10#13,
-            'Игра делится на несколько раундов. Каждый раунд проходит в два этапа. Игроки садятся за компьютер поочередно.', #10#13,
-            'Каждому игроку выдаётся слово, игрок отвечает на 3 вопроса о нём', #10#13,
-            'После того, как все игроки ответили на свои вопросы, начинается следующий этап:', #10#13,
-            '     1.Каждый игрок пытается отгадать слово одного из соперников.', #10#13,
-            '     2.Сначала на экран выводятся только прилагательные, и игрок вводит свой вариант слова.', #10#13,
-            '     3.Если он ошибся, то на экране отображаются еще и 3 глагола, и у игрока снова появляется возможност угадать слово.',
-            #10#13, '     4.Если слово не угадано, то на экран выводятся еще и существительные.', #10#13,
-            'Игра длится до тех пор, пока хотя бы один из игроков не наберет 15 очков, которые даются за правильно угаданное слово.',
-            #10#13);
+        Writeln('В игре участвуют от ', MIN_NUM_OF_PLAYERS, ' до ',
+      MAX_NUM_OF_PLAYERS, ' игроков.', #10#13,
+      'Игра делится на несколько раундов. Каждый раунд проходит в два этапа. Игроки садятся за компьютер поочередно.',
+      #10#13, 'Каждому игроку выдаётся слово, игрок отвечает на 3 вопроса о нём', #10#13,
+      'После того, как все игроки ответили на свои вопросы, начинается следующий этап:', #10#13,
+      '     1.Каждый игрок пытается отгадать слово одного из соперников.', #10#13,
+      '     2.Сначала на экран выводятся только прилагательные, и игрок вводит свой вариант слова.', #10#13,
+      '     3.Если он ошибся, то на экране отображаются еще и 3 глагола, и у игрока снова появляется возможност угадать слово.', #10#13,
+      '     4.Если слово не угадано, то на экран выводятся еще и существительные.',
+      #10#13, 'Игра длится до тех пор, пока хотя бы один из игроков не наберет 15 очков, которые даются за правильно угаданное слово.', #10#13);
     End;
 End;
 
 
-Procedure OutputWinners(Words: TStrMatrix; NumOfPlayers: Integer; Order, ArrPoints: TIntArr);
+Procedure OutputWinners(ListWinner:TList<Integer>);
 Var
     I: Integer;
-    ListWinner: TList<Integer>;
-    IsEnd: Boolean;
+
 Begin
-    ListWinner := TList<Integer>.Create;
-    Repeat
-        ListWinner.Clear;
-        InputData(Words, NumOfPlayers);
-        Order := CreatingOrderForGuesing(NumOfPlayers);
-        OutputAssociation(Words, Order, ArrPoints);
-        IsEnd := CheckIsEnd(Arrpoints, ListWinner);
-        OutputResult(ArrPoints);
-    Until (IsEnd);
     Try
-        For I In ListWinner Do
-        Begin
-            Writeln('Победил игрок номер ', I + 1);
-        End;
+    For I In ListWinner Do
+    Begin
+        Writeln('Победил игрок №', I + 1);
+    End;
     Finally
         ListWinner.Free;
     End;
-
 End;
+
 
 Var
     NumOfPlayers: Integer;
     Words: TStrMatrix;
-    Order, ArrPoints: TIntArr;
-    ListWinner: TList<Integer>;
-
+    Order,ArrPoints:TIntArr;
+    ListWinner:TList<Integer>;
+    IsEnd:Boolean;
 Begin
     PrintTask;
     NumOfPlayers := EnterNumberOfPlayers();
-    SetLength(Words, NumOfPlayers, NUM_OF_MAX_WORDS_IN_ROW);
+    SetLength(Words, NumOfPlayers,  NUM_OF_MAX_WORDS_IN_ROW);
     SetLength(ArrPoints, NumOfPlayers);
-    OutputWinners(Words, NumOfPlayers, Order, ArrPoints);
+    ListWinner := TList<Integer>.Create;
+    Repeat
+        ListWinner.Clear;
+        InputDataForRound(Words, NumOfPlayers);
+        Order := CreatingOrderForGuesing(NumOfPlayers);
+        RunRound(Words,Order,ArrPoints);
+        IsEnd := CheckIsEnd(Arrpoints, ListWinner);
+        OutputResult(ArrPoints);
+    Until (IsEnd);
+    OutputWinners(ListWinner);
+
     Readln;
 End.
