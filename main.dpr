@@ -1,5 +1,7 @@
 Program main;
 
+{$APPTYPE CONSOLE}
+
 Uses
     System.SysUtils, Classes, Windows, System.Generics.Collections;
 
