@@ -1,4 +1,4 @@
-Program CoolGame;
+Program main;
 
 Uses
     System.SysUtils, Classes, Windows, System.Generics.Collections;
