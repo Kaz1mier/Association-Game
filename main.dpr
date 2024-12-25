@@ -10,7 +10,7 @@ Uses
 
 Const
     NOUN_ENDIGNS: Set Of AnsiChar = ['а', 'я', 'о', 'е'];
-    CONSONANTS: Set Of AnsiChar = ['б', 'в', 'г', 'д', 'ж', 'з', 'к', 'л', 'м', 'н', 'п', 'р', 'с', 'т', 'ф', 'х', 'ц', 'ч', 'ш', 'щ'];
+    CONSONANTS: Set Of AnsiChar = ['б', 'в', 'г', 'д', 'ж', 'з', 'к', 'л', 'м', 'й', 'н', 'п', 'р', 'с', 'т', 'ф', 'х', 'ц', 'ч', 'ш', 'щ'];
     VOWELS: Set Of AnsiChar = ['а', 'е', 'ё', 'и', 'о', 'у', 'ы', 'э', 'ю', 'я'];
     LETTERS: Set Of AnsiChar = ['а' .. 'я', 'ё'];
     ADJECTIVE_ENDINGS: Array [0 .. 2] Of AnsiString = ('ый', 'ий', 'ой');
@@ -117,22 +117,24 @@ End;
 
 Function CheckIsWord(Const Word: AnsiString): Boolean;
 Var
-    I, HighIdx: Integer;
+    I: Integer;
     IsValid, HasVowel, HasConsonant: Boolean;
 Begin
     HasConsonant := False;
     HasVowel := False;
     IsValid := True;
     I := 1;
-    HighIdx := High(Word);
 
-    If HighIdx > 1 Then
-        While (I <= HighIdx) And IsValid Do
+    If High(Word) > 1 Then
+        While (I <= High(Word)) And IsValid Do
         Begin
             If Not(Word[I] In LETTERS) Then
-                IsValid := False
+            Begin
+                IsValid := False;
+                Writeln('Такого слова не существует или оно не из русского языка!.');
+            End
             Else
-                If Not(I = HighIdx) And (Word[I] In VOWELS) Then
+                If Not(I = High(Word)) And (Word[I] In VOWELS) Then
                     HasVowel := True
                 Else
                     If (Word[I] In CONSONANTS) Then
@@ -140,13 +142,16 @@ Begin
             Inc(I);
         End
     Else
-        IsValid := False;
-    IsValid := IsValid And HasVowel And HasConsonant;
+        Begin
+            IsValid := False;
+            Writeln('Вы не ввели слово или оно состоит из одной буквы!');
+        End;
 
+    If IsValid And (Not HasVowel Or Not  HasConsonant) Then
+        Writeln('В слове одни гласные или согласные.');
+    IsValid := IsValid And HasVowel And HasConsonant;
     CheckIsWord := IsValid;
 End;
-
-
 
 Function CheckIsVerb(Const Word: AnsiString): Boolean;
 Var
@@ -154,10 +159,8 @@ Var
     LastLet, PredLastLet: AnsiChar;
 Begin
     IsValid := False;
-    LastLet := Word[High(Word)];
-    PredLastLet := Word[High(Word) - 1];
-    IsValid := ((Word[High(Word)] = 'ь') And (Word[High(Word) - 1] In CONSONANTS)) Or ((PredLastLet = 'с') And (LastLet = 'я'));
-
+    IsValid := ((Word[High(Word)] = 'ь') And (Word[High(Word) - 1] = 'т') And (Word[High(Word) - 2] In VOWELS) And (Word[High(Word) - 3] In CONSONANTS)) Or
+        ((Word[High(Word) - 1] = 'с') And (Word[High(Word)] = 'я'));
     CheckIsVerb := IsValid;
 End;
 
@@ -172,7 +175,8 @@ Begin
     For I := 0 To High(ADJECTIVE_ENDINGS) Do
         If WordEnding = ADJECTIVE_ENDINGS[I] Then
             IsValid := True;
-
+    If (High(Word) < 3) Or  (not (Word[High(Word) - 3] in CONSONANTS)) Then
+            IsValid := False;
     CheckIsAdjective := IsValid;
 End;
 
@@ -184,11 +188,11 @@ Begin
     IsValid := False;
     LastLet := Word[High(Word)];
     PredLastLet := Word[High(Word) - 1];
-    IsValid := (Not CheckIsAdjective(Word) And Not CheckIsVerb(Word)) And ((LastLet In CONSONANTS) Or ((PredLastLet In CONSONANTS) And ((LastLet = 'ь') Or (LastLet In NOUN_ENDIGNS))));
+    IsValid := (Not CheckIsAdjective(Word) And Not CheckIsVerb(Word)) And
+        (((LastLet In CONSONANTS) Or ((PredLastLet In CONSONANTS)) And ((LastLet = 'ь') Or (LastLet In NOUN_ENDIGNS))));
 
     CheckIsNoun := IsValid;
 End;
-
 
 Function CheckPartOfSpeech(Const Word: AnsiString; PartOfSpeech: TPartOfSpeech): Boolean;
 Var
@@ -217,9 +221,13 @@ Begin
         Repeat
             Readln(Word);
             LowerCase(Word);
-            IsValid := Not(SecreteWord = Word) And CheckIsWord(Word) And CheckPartOfSpeech(Word, PartOfSpeech);
-            If Not IsValid Then
-                Writeln('Часть речи должна быть в начальной форме. Попробуйте сново.');
+            IsValid := Not(SecreteWord = Word) And CheckIsWord(Word);
+            If IsValid Then
+            Begin
+                IsValid := CheckPartOfSpeech(Word, PartOfSpeech);
+                If Not IsValid Then
+                    Writeln('Часть речи должна быть в начальной форме. Попробуйте сново.')
+            End;
         Until IsValid;
         Words[I][K + J] := Word;
     End;
