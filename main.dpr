@@ -355,7 +355,7 @@ Begin
     Try
         For I In ListWinner Do
         Begin
-            Writeln('Победил игрок номер', I + 1);
+            Writeln('Победил игрок номер ', I + 1);
         End;
     Finally
         ListWinner.Free;
