@@ -1,4 +1,4 @@
-﻿Program main;
+Program main;
 
 {$APPTYPE CONSOLE}
 
@@ -159,8 +159,15 @@ Var
     LastLet, PredLastLet: AnsiChar;
 Begin
     IsValid := False;
+
     IsValid := ((Word[High(Word)] = 'ь') And (Word[High(Word) - 1] = 'т') And (Word[High(Word) - 2] In VOWELS) And (Word[High(Word) - 3] In CONSONANTS)) Or
         ((Word[High(Word) - 1] = 'с') And (Word[High(Word)] = 'я'));
+
+    LastLet := Word[High(Word)];
+    PredLastLet := Word[High(Word) - 1];
+    IsValid := ((Word[High(Word)] = 'ь') And (Word[High(Word) - 1] = 'т')) Or ((PredLastLet = 'с') And (LastLet = 'я'));
+
+
     CheckIsVerb := IsValid;
 End;
 
@@ -175,7 +182,7 @@ Begin
     For I := 0 To High(ADJECTIVE_ENDINGS) Do
         If WordEnding = ADJECTIVE_ENDINGS[I] Then
             IsValid := True;
-    If (High(Word) < 3) Or  (not (Word[High(Word) - 3] in CONSONANTS)) Then
+    If (Length(Word) < 3) Or  (not (Word[Length(Word) - 2] in CONSONANTS)) Then
             IsValid := False;
     CheckIsAdjective := IsValid;
 End;
@@ -226,7 +233,7 @@ Begin
             Begin
                 IsValid := CheckPartOfSpeech(Word, PartOfSpeech);
                 If Not IsValid Then
-                    Writeln('Часть речи должна быть в начальной форме. Попробуйте сново.')
+                    Writeln('Часть речи должна быть в начальной форме. Попробуйте снова.')
             End;
         Until IsValid;
         Words[I][K + J] := Word;
@@ -477,5 +484,4 @@ Begin
     SetLength(ArrPoints, NumOfPlayers);
     OutputWinners(StartGame(Words, NumOfPlayers, ArrPoints));
     Readln;
-
 End.
